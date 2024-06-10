@@ -1,40 +1,53 @@
+//metafield g:id gid://shopify/Metafield/36433231478933 
+
 // @ts-check
 
-// Use JSDoc annotations for type safety
 /**
- * @typedef {import("../generated/api").RunInput} RunInput
- * @typedef {import("../generated/api").FunctionRunResult} FunctionRunResult
- * @typedef {import("../generated/api").Operation} Operation
- */
+* @typedef {import("../generated/api").RunInput} RunInput
+* @typedef {import("../generated/api").FunctionRunResult} FunctionRunResult
+* @typedef {import("../generated/api").Operation} Operation
+*/
+/**
+* @type {FunctionRunResult}
+*/
+const NO_CHANGES = {
+  operations: [],
+};
 
-// The configured entrypoint for the 'purchase.delivery-customization.run' extension target
 /**
- * @param {RunInput} input
- * @returns {FunctionRunResult}
- */
+* @param {RunInput} input
+* @returns {FunctionRunResult}
+*/
 export function run(input) {
-  // The message to be added to the delivery option
-  const message = "May be delayed due to weather conditions";
+  // Define a type for your configuration, and parse it from the metafield
+  /**
+  * @type {{
+  *  stateProvinceCode: string
+  *  zip: string
+  *  message: number
+  * }}
+  */
+  const configuration = JSON.parse(
+    input?.deliveryCustomization?.metafield?.value ?? "{}"
+  );
+  if (!configuration.zip || !configuration.message) {
+    return NO_CHANGES;
+  }
 
   let toRename = input.cart.deliveryGroups
-    // Filter for delivery groups with a shipping address containing the affected zip code
     .filter(group => group.deliveryAddress?.zip &&
-      group.deliveryAddress.zip.includes("CW"))
-    // Collect the delivery options from these groups
+      // Use the configured province code instead of a hardcoded value
+      group.deliveryAddress.zip.startsWith(configuration.zip))
     .flatMap(group => group.deliveryOptions)
-    // Construct a rename operation for each, adding the message to the option title
     .map(option => /** @type {Operation} */({
       rename: {
         deliveryOptionHandle: option.handle,
-        title: option.title ? `${option.title} - ${message}` : message
+        // Use the configured message instead of a hardcoded value
+        title: option.title ? `${option.title} - ${configuration.message}` : configuration.message
       }
     }));
 
-  // The @shopify/shopify_function package applies JSON.stringify() to your function result
-  // and writes it to STDOUT
   return {
     operations: toRename
   };
-}
-
-
+};

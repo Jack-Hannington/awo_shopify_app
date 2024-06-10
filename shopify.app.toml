@@ -3,7 +3,7 @@
 client_id = "24fd8948ab3a980274fc750d69c25e79"
 name = "delivery-app"
 handle = "delivery-app-50"
-application_url = "https://odd-patrick-nottingham-penny.trycloudflare.com"
+application_url = "https://preferences-own-burlington-crowd.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "write_delivery_customizations,write_products"
 
 [auth]
 redirect_urls = [
-  "https://odd-patrick-nottingham-penny.trycloudflare.com/auth/callback",
-  "https://odd-patrick-nottingham-penny.trycloudflare.com/auth/shopify/callback",
-  "https://odd-patrick-nottingham-penny.trycloudflare.com/api/auth/callback"
+  "https://preferences-own-burlington-crowd.trycloudflare.com/auth/callback",
+  "https://preferences-own-burlington-crowd.trycloudflare.com/auth/shopify/callback",
+  "https://preferences-own-burlington-crowd.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
