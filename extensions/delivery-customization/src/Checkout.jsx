@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Heading,
+  Text,
   DatePicker,
   useApplyMetafieldsChange,
   useDeliveryGroups,
@@ -14,6 +15,7 @@ reactExtension("purchase.checkout.shipping-option-list.render-after", () => (
 
 export default function Extension() {
   const [selectedDate, setSelectedDate] = useState("");
+  const [availableDates, setAvailableDates] = useState([]);
   const [yesterday, setYesterday] = useState("");
 
   const { extension } = useApi();
@@ -28,6 +30,29 @@ export default function Extension() {
   const metafieldNamespace = "deliveryApp";
   const metafieldKey = "deliverySchedule";
 
+  // Function to fetch available dates based on postcode
+  const fetchAvailableDates = async (postcode) => {
+    try {
+      const response = await fetch(`https://awodeliverydates-production.up.railway.app/getdeliverydates?postcode=cw11%203eb`);
+      const data = await response.json();
+      setAvailableDates(data.dates); // Assuming the response contains a dates array
+      console.log(data.dates)
+    } catch (error) {
+      console.error("Error fetching available dates:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!deliveryGroups || deliveryGroups.length === 0) return;
+
+    // Assuming the postcode is part of the first delivery group
+    const postcode = deliveryGroups[0]?.deliveryAddress?.zip;
+
+    if (postcode) {
+      fetchAvailableDates(postcode);
+    }
+  }, [deliveryGroups]);
+
   // Sets the selected date to today, unless today is Sunday, then it sets it to tomorrow
   useMemo(() => {
     let today = new Date();
@@ -38,7 +63,12 @@ export default function Extension() {
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
-    const deliveryDate = today.getDay() === 0 ? tomorrow : today;
+    let deliveryDate;
+    if (today.getDay() === 0) {
+      deliveryDate = tomorrow;
+    } else {
+      deliveryDate = today;
+    }
 
     setSelectedDate(formatDate(deliveryDate));
     setYesterday(formatDate(yesterday));
@@ -55,7 +85,7 @@ export default function Extension() {
       valueType: "string",
       value: selectedDate,
     });
-  }, []);
+  }, [applyMetafieldsChange]);
 
   // Boolean to check if Express is selected
   const isExpressSelected = () => {
@@ -78,11 +108,12 @@ export default function Extension() {
   // Render the extension components if Express is selected
   return isExpressSelected() ? (
     <>
-      <Heading>Select a date for delivery</Heading>
+      <Text variant="headingXl" as="h6">Select a date for delivery</Text>
       <DatePicker
         selected={selectedDate}
         onChange={handleChangeDate}
-        disabled={["Sunday", { end: yesterday }]}
+        disabled={["Sunday", "Saturday", { end: yesterday }, { start: '2024-06-12', end: '2024-06-18' }]}
+        availableDates={availableDates}
       />
     </>
   ) : null;
