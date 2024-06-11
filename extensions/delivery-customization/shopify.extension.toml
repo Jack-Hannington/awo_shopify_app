@@ -1,11 +1,14 @@
-api_version = "2024-04"
+api_version = "2023-07"
+
+[capabilities]
+api_access = true
+network_access = true
+block_progress = true
 
 [[extensions]]
 name = "t:name"
 handle = "delivery-customization"
 type = "function"
-
-description = "t:description"
 
   [[extensions.targeting]]
   target = "purchase.delivery-customization.run"
@@ -17,5 +20,30 @@ description = "t:description"
   path = "dist/function.wasm"
 
   [extensions.ui.paths]
-create = "/app/delivery-customization/:functionId/new"
-details = "/app/delivery-customization/:functionId/:id"
+  create = "/app/delivery-customization/:functionId/new"
+  details = "/app/delivery-customization/:functionId/:id"
+
+[[extensions]]
+type = "ui_extension"
+name = "checkout-ui"
+handle = "checkout-ui"
+
+  [[extensions.targeting]]
+  target = "purchase.checkout.shipping-option-list.render-after"
+  module = "./src/Checkout.jsx"
+  export = "purchaseCheckoutShippingOptionListRenderAfter"
+
+# Uncomment and configure metafields if needed
+# [[extensions.metafields]]
+# namespace = "my-namespace"
+# key = "my-key"
+
+# Uncomment and configure settings if needed
+# [settings]
+#   [[settings.fields]]
+#   key = "banner_title"
+#   type = "single_line_text_field"
+#   name = "Banner title"
+#   description = "Enter a title for the banner"
+
+description = "t:description"

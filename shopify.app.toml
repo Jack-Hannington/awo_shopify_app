@@ -3,12 +3,12 @@
 client_id = "24fd8948ab3a980274fc750d69c25e79"
 name = "delivery-app"
 handle = "delivery-app-50"
-application_url = "https://preferences-own-burlington-crowd.trycloudflare.com"
+application_url = "https://cp-rolled-carmen-norfolk.trycloudflare.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "applianceworldonline.myshopify.com"
+dev_store_url = "awo-checkout.myshopify.com"
 include_config_on_deploy = true
 
 [access_scopes]
@@ -17,9 +17,9 @@ scopes = "write_delivery_customizations,write_products"
 
 [auth]
 redirect_urls = [
-  "https://preferences-own-burlington-crowd.trycloudflare.com/auth/callback",
-  "https://preferences-own-burlington-crowd.trycloudflare.com/auth/shopify/callback",
-  "https://preferences-own-burlington-crowd.trycloudflare.com/api/auth/callback"
+  "https://cp-rolled-carmen-norfolk.trycloudflare.com/auth/callback",
+  "https://cp-rolled-carmen-norfolk.trycloudflare.com/auth/shopify/callback",
+  "https://cp-rolled-carmen-norfolk.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
