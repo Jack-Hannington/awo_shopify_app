@@ -3,7 +3,7 @@
 client_id = "24fd8948ab3a980274fc750d69c25e79"
 name = "delivery-app"
 handle = "delivery-app-50"
-application_url = "https://eyed-alike-sims-screen.trycloudflare.com"
+application_url = "https://worship-usd-lafayette-biodiversity.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_delivery_customizations,write_products"
+scopes = "read_shipping,write_delivery_customizations,write_products"
 
 [auth]
 redirect_urls = [
-  "https://eyed-alike-sims-screen.trycloudflare.com/auth/callback",
-  "https://eyed-alike-sims-screen.trycloudflare.com/auth/shopify/callback",
-  "https://eyed-alike-sims-screen.trycloudflare.com/api/auth/callback"
+  "https://worship-usd-lafayette-biodiversity.trycloudflare.com/auth/callback",
+  "https://worship-usd-lafayette-biodiversity.trycloudflare.com/auth/shopify/callback",
+  "https://worship-usd-lafayette-biodiversity.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

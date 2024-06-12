@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Heading,
   Text,
   DatePicker,
   useApplyMetafieldsChange,
   useDeliveryGroups,
   useApi,
   reactExtension,
+  useShippingAddress,
 } from "@shopify/ui-extensions-react/checkout";
 
 reactExtension("purchase.checkout.shipping-option-list.render-after", () => (
@@ -21,7 +21,8 @@ export default function Extension() {
   const { extension } = useApi();
   const { target } = extension;
 
-  let deliveryGroups = useDeliveryGroups();
+  const deliveryGroups = useDeliveryGroups();
+  const shippingAddress = useShippingAddress();
 
   // Set a function to handle updating a metafield
   const applyMetafieldsChange = useApplyMetafieldsChange();
@@ -33,25 +34,30 @@ export default function Extension() {
   // Function to fetch available dates based on postcode
   const fetchAvailableDates = async (postcode) => {
     try {
-      const response = await fetch(`https://awodeliverydates-production.up.railway.app/getdeliverydates?postcode=cw11%203eb`);
+      const response = await fetch(`https://awodeliverydates-production.up.railway.app/getdeliverydates?postcode=${postcode}`);
       const data = await response.json();
       setAvailableDates(data.dates); // Assuming the response contains a dates array
-      console.log(data.dates)
+      console.log(data.dates);
     } catch (error) {
       console.error("Error fetching available dates:", error);
     }
   };
 
   useEffect(() => {
-    if (!deliveryGroups || deliveryGroups.length === 0) return;
+    // Log the shipping address for debugging
+    console.log("Shipping Address: ", shippingAddress);
 
-    // Assuming the postcode is part of the first delivery group
-    const postcode = deliveryGroups[0]?.deliveryAddress?.zip;
+    if (!shippingAddress) return;
+
+    const postcode = shippingAddress?.zip;
+
+    // Log the postcode for debugging
+    console.log("Postcode: ", postcode);
 
     if (postcode) {
       fetchAvailableDates(postcode);
     }
-  }, [deliveryGroups]);
+  }, [shippingAddress]);
 
   // Sets the selected date to today, unless today is Sunday, then it sets it to tomorrow
   useMemo(() => {
@@ -75,23 +81,27 @@ export default function Extension() {
   }, []);
 
   // Set a function to handle the Date Picker component's onChange event
-  const handleChangeDate = useCallback((selectedDate) => {
-    setSelectedDate(selectedDate);
-    // Apply the change to the metafield
-    applyMetafieldsChange({
-      type: "updateMetafield",
-      namespace: metafieldNamespace,
-      key: metafieldKey,
-      valueType: "string",
-      value: selectedDate,
-    });
-  }, [applyMetafieldsChange]);
+  const handleChangeDate = useCallback(
+    (selectedDate) => {
+      setSelectedDate(selectedDate);
+      // Apply the change to the metafield
+      applyMetafieldsChange({
+        type: "updateMetafield",
+        namespace: metafieldNamespace,
+        key: metafieldKey,
+        valueType: "string",
+        value: selectedDate,
+      });
+    },
+    [applyMetafieldsChange]
+  );
 
   // Boolean to check if Express is selected
   const isExpressSelected = () => {
     if (
       target !== "purchase.checkout.shipping-option-list.render-after" ||
-      !deliveryGroups
+      !deliveryGroups ||
+      deliveryGroups.length === 0
     ) {
       return false;
     }
@@ -100,19 +110,24 @@ export default function Extension() {
       (method) => method.title === "Choice of date"
     )?.handle;
 
-    return expressHandle === deliveryGroups[0].selectedDeliveryOption?.handle
-      ? true
-      : false;
+    return expressHandle === deliveryGroups[0].selectedDeliveryOption?.handle;
   };
 
   // Render the extension components if Express is selected
   return isExpressSelected() ? (
     <>
-      <Text variant="headingXl" as="h6">Select a date for delivery</Text>
+      <Text variant="bodyLg" as="p">
+        Select a date for delivery
+      </Text>
       <DatePicker
         selected={selectedDate}
         onChange={handleChangeDate}
-        disabled={["Sunday", "Saturday", { end: yesterday }, { start: '2024-06-12', end: '2024-06-18' }]}
+        disabled={[
+          "Sunday",
+          "Saturday",
+          { end: yesterday },
+          { start: "2024-06-12", end: "2024-06-18" },
+        ]}
         availableDates={availableDates}
       />
     </>

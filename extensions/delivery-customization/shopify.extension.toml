@@ -1,14 +1,14 @@
 api_version = "2023-07"
 
-[capabilities]
-api_access = true
-network_access = true
-block_progress = true
-
 [[extensions]]
 name = "t:name"
 handle = "delivery-customization"
 type = "function"
+
+  [extensions.capabilities]
+  api_access = true
+  block_progress = true
+  network_access = true
 
   [[extensions.targeting]]
   target = "purchase.delivery-customization.run"
@@ -27,6 +27,9 @@ type = "function"
 type = "ui_extension"
 name = "checkout-ui"
 handle = "checkout-ui"
+
+  [extensions.capabilities]
+  network_access = true
 
   [[extensions.targeting]]
   target = "purchase.checkout.shipping-option-list.render-after"
