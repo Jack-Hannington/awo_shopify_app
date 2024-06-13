@@ -36,23 +36,16 @@ export default function Extension() {
     try {
       const response = await fetch(`https://awodeliverydates-production.up.railway.app/getdeliverydates?postcode=${postcode}`);
       const data = await response.json();
-      setAvailableDates(data.dates); // Assuming the response contains a dates array
-      console.log(data.dates);
+      setAvailableDates(data.dates.map(dateStr => new Date(Date.parse(dateStr + " 2024 GMT")))); // Assuming the response contains a dates array
     } catch (error) {
       console.error("Error fetching available dates:", error);
     }
   };
 
   useEffect(() => {
-    // Log the shipping address for debugging
-    console.log("Shipping Address: ", shippingAddress);
-
     if (!shippingAddress) return;
 
     const postcode = shippingAddress?.zip;
-
-    // Log the postcode for debugging
-    console.log("Postcode: ", postcode);
 
     if (postcode) {
       fetchAvailableDates(postcode);
@@ -79,6 +72,46 @@ export default function Extension() {
     setSelectedDate(formatDate(deliveryDate));
     setYesterday(formatDate(yesterday));
   }, []);
+
+  // Helper function to check if a date is in the list of available dates
+  const isDateAvailable = (date, availableDates) => {
+    const formattedDate = formatDate(date);
+    return availableDates.some(availableDate => formatDate(availableDate) === formattedDate);
+  };
+
+  // Generate the disabled date ranges based on available dates
+  const generateDisabledRanges = (availableDates) => {
+    const startDate = new Date('2024-06-01');
+    const endDate = new Date('2024-08-31');
+    const disabledRanges = [];
+
+    let currentStart = startDate;
+    while (currentStart <= endDate) {
+      if (!isDateAvailable(currentStart, availableDates)) {
+        let currentEnd = new Date(currentStart);
+        while (!isDateAvailable(currentEnd, availableDates) && currentEnd <= endDate) {
+          currentEnd.setDate(currentEnd.getDate() + 1);
+        }
+        disabledRanges.push({ start: formatDate(new Date(currentStart)), end: formatDate(new Date(currentEnd.setDate(currentEnd.getDate() - 1))) });
+        currentStart = new Date(currentEnd);
+        currentStart.setDate(currentStart.getDate() + 1);
+      } else {
+        currentStart.setDate(currentStart.getDate() + 1);
+      }
+    }
+
+    // Add a disabled range for dates after the last available date
+    if (availableDates.length > 0) {
+      const lastAvailableDate = availableDates[availableDates.length - 1];
+      const dayAfterLastAvailableDate = new Date(lastAvailableDate);
+      dayAfterLastAvailableDate.setDate(lastAvailableDate.getDate() + 1);
+      disabledRanges.push({ start: formatDate(dayAfterLastAvailableDate) });
+    }
+
+    return disabledRanges;
+  };
+
+  const disabledRanges = useMemo(() => generateDisabledRanges(availableDates), [availableDates]);
 
   // Set a function to handle the Date Picker component's onChange event
   const handleChangeDate = useCallback(
@@ -122,13 +155,7 @@ export default function Extension() {
       <DatePicker
         selected={selectedDate}
         onChange={handleChangeDate}
-        disabled={[
-          "Sunday",
-          "Saturday",
-          { end: yesterday },
-          { start: "2024-06-12", end: "2024-06-18" },
-        ]}
-        availableDates={availableDates}
+        disabled={[...disabledRanges, { end: yesterday }]}
       />
     </>
   ) : null;
