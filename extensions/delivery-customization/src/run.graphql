@@ -9,7 +9,7 @@ query RunInput {
         handle
         title
       }
-    }
+    } 
   }
   deliveryCustomization {
     metafield(namespace: "$app:delivery-customization", key: "function-configuration") {
