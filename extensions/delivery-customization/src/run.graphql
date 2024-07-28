@@ -2,6 +2,7 @@ query RunInput {
   cart {
     deliveryGroups {
       deliveryAddress {
+        firstName
         provinceCode
         zip
       }
@@ -9,11 +10,14 @@ query RunInput {
         handle
         title
       }
-    } 
-  }
-  deliveryCustomization {
-    metafield(namespace: "$app:delivery-customization", key: "function-configuration") {
-      value
+    }
+     lines {
+      cost {
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
     }
   }
 }

@@ -1,8 +1,31 @@
 api_version = "2024-04"
 
 [[extensions]]
-name = "t:name"
-handle = "delivery-customization"
+name = "Rename Delivery Option"
+handle = "rename-delivery"
+type = "function"
+
+  [extensions.capabilities]
+  api_access = true
+  block_progress = true
+  network_access = true
+
+  [[extensions.targeting]]
+  target = "purchase.delivery-customization.run"
+  input_query = "src/run.graphql"
+  export = "rename-delivery"
+
+  [extensions.build]
+  command = ""
+  path = "dist/rename-function.wasm"
+
+  [extensions.ui.paths]
+  create = "/app/delivery-customization/:functionId/new"
+  details = "/app/delivery-customization/:functionId/:id"
+
+[[extensions]]
+name = "Run Delivery Option"
+handle = "run"
 type = "function"
 
   [extensions.capabilities]
@@ -17,7 +40,30 @@ type = "function"
 
   [extensions.build]
   command = ""
-  path = "dist/function.wasm"
+  path = "dist/rename-function.wasm"
+
+  [extensions.ui.paths]
+  create = "/app/delivery-customization/:functionId/new"
+  details = "/app/delivery-customization/:functionId/:id"
+
+[[extensions]]
+name = "Hide Delivery Option"
+handle = "hide-delivery"
+type = "function"
+
+  [extensions.capabilities]
+  api_access = true
+  block_progress = true
+  network_access = true
+
+  [[extensions.targeting]]
+  target = "purchase.delivery-customization.run"
+  input_query = "src/run.graphql"
+  export = "hide-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/hide-function.wasm"
 
   [extensions.ui.paths]
   create = "/app/delivery-customization/:functionId/new"
@@ -35,18 +81,5 @@ handle = "checkout-ui"
   target = "purchase.checkout.shipping-option-list.render-after"
   module = "./src/Checkout.jsx"
   export = "purchaseCheckoutShippingOptionListRenderAfter"
-
-# Uncomment and configure metafields if needed
-# [[extensions.metafields]]
-# namespace = "my-namespace"
-# key = "my-key"
-
-# Uncomment and configure settings if needed
-# [settings]
-#   [[settings.fields]]
-#   key = "banner_title"
-#   type = "single_line_text_field"
-#   name = "Banner title"
-#   description = "Enter a title for the banner"
 
 description = "t:description"

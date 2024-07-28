@@ -4,6 +4,7 @@ import {
   DatePicker,
   BlockSpacer,
   Banner,
+  BlockStack,
   useApplyMetafieldsChange,
   useDeliveryGroups,
   useApi,
@@ -13,14 +14,7 @@ import {
 
 
 
-// Create object based on postcode and cart items. If installation and non-local only show Panther. If removal 
-// If installation and postcode is not local then hide date picker only show panther. 
-// Hide date picker if cart has installation and postcode not local which we can get from the API.
-// Show 2 person express delivery option with 3+ steps only.
-// Show collection if non-installation 
-// Ships in 5-10 days. We will contact you to confirm the date.
-// Delivery surcharge for remote postcodes - £60. 
-// https://claude.ai/chat/a030fd15-479b-4b58-9e1d-9b2fafd88df3
+// Need some check for cart item status to hide the date picker but keep the rest of the options. If not current stock then split delivery?
 
 reactExtension("purchase.checkout.shipping-option-list.render-after", () => (
   <Extension />
@@ -171,20 +165,39 @@ export default function Extension() {
     ) {
       return false;
     }
+  
+    const expressTitles = [
+      "1 man delivery - choose your date",
+      "2 man delivery - Choose your date",
+      "National 2 person delivery - Crewe may be delayed",
+      "National choice of date",
+      "Local 2 person delivery",
+      "Local choice of date"
 
-    const expressHandle = deliveryGroups[0].deliveryOptions.find(
-      (method) => method.title === "Choice of date"
-    )?.handle;
-
-    return expressHandle === deliveryGroups[0].selectedDeliveryOption?.handle;
+      // Add more titles as needed
+    ];
+  
+    const expressHandles = new Set(
+      deliveryGroups
+        .flatMap(({ deliveryOptions }) =>
+          deliveryOptions
+            .filter((method) => expressTitles.includes(method.title))
+            .map((method) => method.handle)
+        )
+        .filter(Boolean)
+    );
+  
+    return deliveryGroups.some(({ selectedDeliveryOption }) =>
+      expressHandles.has(selectedDeliveryOption?.handle)
+    );
   };
 
   // Render the extension components if Express is selected
   return isExpressSelected() ? (
     <>
-      <Text variant="bodyLg" as="p">
-        Select a date for delivery
-      </Text>
+    	<BlockStack inlineAlignment="center">
+      <Text size="medium">Select a delivery date</Text>
+    </BlockStack>
       <DatePicker
         selected={selectedDate}
         onChange={handleChangeDate}
