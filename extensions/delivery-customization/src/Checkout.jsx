@@ -167,16 +167,10 @@ export default function Extension() {
     }
   
     const expressTitles = [
-      "1 man delivery - choose your date",
-      "2 man delivery - Choose your date",
-      "National 2 person delivery - Crewe may be delayed",
-      "National choice of date",
-      "Local 2 person delivery",
-      "Local 2 man delivery",
-      "National choice of date",
-      "Local choice of date"
-
-      // Add more titles as needed
+      "1 man delivery - choice of date",
+      "2 man delivery - choice of date",
+      "1 man delivery - local",
+      "2 man delivery - local",
     ];
   
     const expressHandles = new Set(

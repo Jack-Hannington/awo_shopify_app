@@ -23,7 +23,7 @@ export function renameDelivery(input) {
     // Filter for delivery groups with a shipping address containing the affected state or province
     .filter(group => group.deliveryAddress?.zip &&
       // Use the configured province code instead of a hardcoded value
-      group.deliveryAddress.zip.startsWith("CW11"))
+      group.deliveryAddress.zip.startsWith("1111"))
     // Collect the delivery options from these groups
     .flatMap(group => group.deliveryOptions)
     // Construct a rename operation for each, adding the message to the option title
