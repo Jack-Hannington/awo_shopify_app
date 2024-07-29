@@ -15,13 +15,13 @@
 */
 export function run(input) {
     // The message to be added to the delivery option
-    const message = "Crewe may be delayed";
+    const message = "";
   
     let toRename = input.cart.deliveryGroups
       // Filter for delivery groups with a shipping address containing the affected state or province
       .filter(group => group.deliveryAddress?.zip &&
         // Use the configured province code instead of a hardcoded value
-        group.deliveryAddress.zip.startsWith("CW11"))
+        group.deliveryAddress.zip.startsWith("OL6"))
       // Collect the delivery options from these groups
       .flatMap(group => group.deliveryOptions)
       // Construct a rename operation for each, adding the message to the option title

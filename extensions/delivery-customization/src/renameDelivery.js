@@ -9,6 +9,7 @@
 * @typedef {import("../generated/api").Operation} Operation
 */
 
+
 // The configured entrypoint for the 'purchase.delivery-customization.run' extension target
 /**
 * @param {RunInput} input
@@ -16,13 +17,13 @@
 */
 export function renameDelivery(input) {
   // The message to be added to the delivery option
-  const message = "Oldham may have a surcharge";
+  const message = "Ships in 5-10 days. We will contact you to confirm.";
 
   let toRename = input.cart.deliveryGroups
     // Filter for delivery groups with a shipping address containing the affected state or province
     .filter(group => group.deliveryAddress?.zip &&
       // Use the configured province code instead of a hardcoded value
-      group.deliveryAddress.zip.startsWith("OL6"))
+      group.deliveryAddress.zip.startsWith("CW11"))
     // Collect the delivery options from these groups
     .flatMap(group => group.deliveryOptions)
     // Construct a rename operation for each, adding the message to the option title

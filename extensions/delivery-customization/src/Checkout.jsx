@@ -172,6 +172,8 @@ export default function Extension() {
       "National 2 person delivery - Crewe may be delayed",
       "National choice of date",
       "Local 2 person delivery",
+      "Local 2 man delivery",
+      "National choice of date",
       "Local choice of date"
 
       // Add more titles as needed

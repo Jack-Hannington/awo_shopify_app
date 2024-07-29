@@ -19,9 +19,6 @@ type = "function"
   command = ""
   path = "dist/rename-function.wasm"
 
-  [extensions.ui.paths]
-  create = "/app/delivery-customization/:functionId/new"
-  details = "/app/delivery-customization/:functionId/:id"
 
 [[extensions]]
 name = "Run Delivery Option"
@@ -40,11 +37,7 @@ type = "function"
 
   [extensions.build]
   command = ""
-  path = "dist/rename-function.wasm"
-
-  [extensions.ui.paths]
-  create = "/app/delivery-customization/:functionId/new"
-  details = "/app/delivery-customization/:functionId/:id"
+  path = "dist/run-function.wasm"
 
 [[extensions]]
 name = "Hide Delivery Option"
@@ -64,10 +57,6 @@ type = "function"
   [extensions.build]
   command = ""
   path = "dist/hide-function.wasm"
-
-  [extensions.ui.paths]
-  create = "/app/delivery-customization/:functionId/new"
-  details = "/app/delivery-customization/:functionId/:id"
 
 [[extensions]]
 type = "ui_extension"
