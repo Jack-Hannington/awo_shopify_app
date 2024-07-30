@@ -74,16 +74,45 @@ const configuration = {
     if (configuration.remoteDeliveryPostcodes.some(prefix => zip.startsWith(prefix))) {
       return { operations: hideAllExcept(["Remote delivery"]) };
     }
+
+    const hasOutOfStockItem = input.cart.lines.some(line => {
+        const inventoryStatus = line.attribute?.value;
+        return inventoryStatus === 'out_of_stock';
+      });
+    
   
+    // Out of stock
+    if (hasOutOfStockItem) {
+      return { operations: hideAllExcept(["Delivery in 5-14 days"]) };
+    }
+    
+    
     // Condition 2: Cart under £150
     if (cartTotal < configuration.lowValueThreshold) {
       return { operations: hideAllExcept(["DPD tracked 24-48hr delivery"]) };
     }
+
+    
   
     // Condition 3: Local Delivery
     if (configuration.localPostcodes.some(prefix => zip.startsWith(prefix))) {
       return { operations: hideAllExcept(["1 man delivery - local", "2 man delivery - local"]) };
     }
+
+    // Condition 4: Check if installation is selected in a non-local area
+    const cartHasTaggedItem = input.cart.lines.some(line => {
+        if ('product' in line.merchandise) {
+          return line.merchandise.product?.hasAnyTag ?? false;
+        }
+        return false;
+      });
+      
+      // New condition for tagged items
+      if (cartHasTaggedItem) {
+        return { operations: hideAllExcept(["2 man delivery - choice of date"]) };
+      }
+
+    
   
     // Condition 4: Default case (not remote, not local, cart >= £150)
     return { operations: hideAllExcept(["1 man delivery - choice of date", "2 man delivery - choice of date"]) };

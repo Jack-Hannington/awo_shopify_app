@@ -11,11 +11,24 @@ query RunInput {
         title
       }
     }
-     lines {
+    lines {
+       attribute(key: "_InventoryStatus") {
+        key
+        value
+      }
       cost {
         totalAmount {
           amount
           currencyCode
+        }
+      }
+      merchandise {
+        ... on ProductVariant {
+          product {
+            hasAnyTag(tags: ["Installation"])
+            productType
+            vendor
+          }
         }
       }
     }
