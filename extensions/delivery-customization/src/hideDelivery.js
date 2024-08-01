@@ -72,7 +72,7 @@ const configuration = {
   
     // Condition 1: Remote Delivery
     if (configuration.remoteDeliveryPostcodes.some(prefix => zip.startsWith(prefix))) {
-      return { operations: hideAllExcept(["Remote delivery"]) };
+      return { operations: hideAllExcept(["Remote delivery", "Collect"]) };
     }
 
     const hasOutOfStockItem = input.cart.lines.some(line => {
@@ -89,15 +89,26 @@ const configuration = {
     
     // Condition 2: Cart under £150
     if (cartTotal < configuration.lowValueThreshold) {
-      return { operations: hideAllExcept(["DPD tracked 24-48hr delivery"]) };
+      return { operations: hideAllExcept(["DPD tracked 24-48hr delivery", "Collect"]) };
     }
 
     
   
-    // Condition 3: Local Delivery
-    if (configuration.localPostcodes.some(prefix => zip.startsWith(prefix))) {
+ // Condition 3: Local Delivery with tag check
+if (configuration.localPostcodes.some(prefix => zip.startsWith(prefix))) {
+    const cartHasTaggedItem = input.cart.lines.some(line => {
+      if ('product' in line.merchandise) {
+        return line.merchandise.product?.hasAnyTag ?? false;
+      }
+      return false;
+    });
+  
+    if (cartHasTaggedItem) {
       return { operations: hideAllExcept(["1 man delivery - local", "2 man delivery - local"]) };
+    } else {
+      return { operations: hideAllExcept(["1 man delivery - local", "2 man delivery - local", "Collect"]) };
     }
+  }
 
     // Condition 4: Check if installation is selected in a non-local area
     const cartHasTaggedItem = input.cart.lines.some(line => {
@@ -115,5 +126,5 @@ const configuration = {
     
   
     // Condition 4: Default case (not remote, not local, cart >= £150)
-    return { operations: hideAllExcept(["1 man delivery - choice of date", "2 man delivery - choice of date"]) };
+    return { operations: hideAllExcept(["1 man delivery - choice of date", "2 man delivery - choice of date", "Collect"]) };
   }
