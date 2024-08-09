@@ -75,9 +75,19 @@ export default function Extension() {
     const postcode = shippingAddress?.zip;
   
     if (postcode) {
-      fetchAvailableDates(postcode);
+      fetchAvailableDates(postcode).then(() => {
+        if (selectedDate) {
+          applyMetafieldsChange({
+            type: "updateMetafield",
+            namespace: metafieldNamespace,
+            key: metafieldKey,
+            valueType: "string",
+            value: selectedDate,
+          });
+        }
+      });
     }
-  }, [shippingAddress, setSelectedDate, setYesterday]);
+  }, [shippingAddress, selectedDate, applyMetafieldsChange]);
 
   // Sets the selected date to today, unless today is Sunday, then it sets it to tomorrow
   useMemo(() => {

@@ -45,8 +45,9 @@
 
 
 const configuration = {
-    remoteDeliveryPostcodes: ["IV", "HS", "KA27", "KA28", "KW", "PA20", "PA21", "PA22", "PA23", "PA24", "PA25", "PA26", "PA27", "PA28", "PA29", "PA30", "PA31", "PA32", "PA33", "PA34", "PA35", "PA36", "PA37", "PA38", "PA39", "PA40", "PA41", "PA42", "PA43", "PA44", "PA45", "PA46", "PA47", "PA48", "PA49", "PA60", "PA61", "PA62", "PA63", "PA64", "PA65", "PA66", "PA67", "PA68", "PA69", "PA70", "PA71", "PA72", "PA73", "PA74", "PA75", "PA76", "PA77", "PA78", "PH17", "PH18", "PH19", "PH20", "PH21", "PH22", "PH23", "PH24", "PH25", "PH26", "PH30", "PH31", "PH32", "PH33", "PH34", "PH35", "PH36", "PH37", "PH38", "PH39", "PH40", "PH41", "PH42", "PH43", "PH44", "PH49", "PH50"],
-    localPostcodes: ["M", "SK", "OL", "WA", "WN", "BL"],
+  remoteDeliveryPostcodes: [
+    "IV", "HS", "KA27", "KA28", "KW", "PA20", "PA21", "PA22", "PA23", "PA24", "PA25", "PA26", "PA27", "PA28", "PA29", "PA30", "PA31", "PA32", "PA33", "PA34", "PA35", "PA36", "PA37", "PA38", "PA39", "PA40", "PA41", "PA42", "PA43", "PA44", "PA45", "PA46", "PA47", "PA48", "PA49", "PA60", "PA61", "PA62", "PA63", "PA64", "PA65", "PA66", "PA67", "PA68", "PA69", "PA70", "PA71", "PA72", "PA73", "PA74", "PA75", "PA76", "PA77", "PA78", "PH17", "PH18", "PH19", "PH20", "PH21", "PH22", "PH23", "PH24", "PH25", "PH26", "PH30", "PH31", "PH32", "PH33", "PH34", "PH35", "PH36", "PH37", "PH38", "PH39", "PH40", "PH41", "PH42", "PH43", "PH44", "PH49", "PH50", "PO30", "PO31", "PO32", "PO33", "PO34", "PO35", "PO36", "PO37", "PO38", "PO39", "PO40", "PO41"
+],
     lowValueThreshold: 15000 // £150 in pence
   };
   
@@ -72,7 +73,7 @@ const configuration = {
   
     // Condition 1: Remote Delivery
     if (configuration.remoteDeliveryPostcodes.some(prefix => zip.startsWith(prefix))) {
-      return { operations: hideAllExcept(["Remote delivery", "Collect"]) };
+      return { operations: hideAllExcept(["Remote delivery"]) };
     }
 
     const hasOutOfStockItem = input.cart.lines.some(line => {
