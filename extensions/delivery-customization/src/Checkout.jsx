@@ -47,11 +47,13 @@ export default function Extension() {
       const availableDates = data.dates.map(dateStr => new Date(Date.parse(`${dateStr} ${currentYear} GMT`)));
       setAvailableDates(availableDates);
   
-      // Set the first available date as the selected date
-      if (availableDates.length > 0) {
+      // Check if the current selectedDate is in the new availableDates
+      const formattedSelectedDate = selectedDate ? formatDate(new Date(selectedDate)) : null;
+      const isCurrentDateAvailable = availableDates.some(date => formatDate(date) === formattedSelectedDate);
+  
+      if (!isCurrentDateAvailable || !selectedDate) {
+        // If current date is not available or no date is selected, set to the first available date
         setSelectedDate(formatDate(availableDates[0]));
-      } else {
-        setSelectedDate(""); // No available dates
       }
   
       // Set yesterday
@@ -75,19 +77,22 @@ export default function Extension() {
     const postcode = shippingAddress?.zip;
   
     if (postcode) {
-      fetchAvailableDates(postcode).then(() => {
-        if (selectedDate) {
-          applyMetafieldsChange({
-            type: "updateMetafield",
-            namespace: metafieldNamespace,
-            key: metafieldKey,
-            valueType: "string",
-            value: selectedDate,
-          });
-        }
+      fetchAvailableDates(postcode);
+    }
+  }, [shippingAddress]);
+
+  // Separate useEffect for updating metafield
+  useEffect(() => {
+    if (selectedDate) {
+      applyMetafieldsChange({
+        type: "updateMetafield",
+        namespace: metafieldNamespace,
+        key: metafieldKey,
+        valueType: "string",
+        value: selectedDate,
       });
     }
-  }, [shippingAddress, selectedDate, applyMetafieldsChange]);
+  }, [selectedDate, applyMetafieldsChange]);
 
   // Sets the selected date to today, unless today is Sunday, then it sets it to tomorrow
   useMemo(() => {
