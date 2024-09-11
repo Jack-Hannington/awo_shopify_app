@@ -1,5 +1,17 @@
 query RunInput {
-  cart {
+   cart {
+    shippingMethodAttribute: attribute(key: "shippingMethod") {
+      key
+      value
+    }
+    deliveryScheduleAttribute: attribute(key: "deliverySchedule") {
+      key
+      value
+    }
+    requiresStepsAttribute: attribute(key: "requiresSteps") {
+      key
+      value
+    }
     deliveryGroups {
       deliveryAddress {
         firstName
