@@ -12,6 +12,18 @@ query RunInput {
       key
       value
     }
+   isLocalAttribute: attribute(key: "isLocal") {
+      key
+      value
+    }
+   isRedZone: attribute(key: "isRedZone") {
+      key
+      value
+    }
+   hasService: attribute(key: "hasService") {
+      key
+      value
+    }
     deliveryGroups {
       deliveryAddress {
         firstName

@@ -1,130 +1,142 @@
 // @ts-check
-//gid://shopify/DeliveryCustomization/13303878
 
-// 7861824f-c424-464a-9a3b-a56a472254dd
-// prod: "gid://shopify/DeliveryCustomization/48726305" 
 /**
 * @typedef {import("../generated/api").RunInput} RunInput
 * @typedef {import("../generated/api").FunctionRunResult} FunctionRunResult
 * @typedef {import("../generated/api").Operation} Operation
 */
 
-/**
-* @param {RunInput} input
-* @returns {FunctionRunResult}
-*/
-// export function hideRun(input) {
-//     const configuration = {
-//       zipPrefixes: ["CW11"], // Add more prefixes as needed
-//       titles: ["Local choice of date", "Local 2 man delivery"] // Add more titles as needed
-//     };
-  
-//     let toHide = input.cart.deliveryGroups
-//       .filter(group => {
-//         const zip = group.deliveryAddress?.zip ?? "";
-//         return configuration.zipPrefixes.some(prefix => zip.startsWith(prefix));
-//       })
-//       .flatMap(group => group.deliveryOptions ?? [])
-//       .filter(option => configuration.titles.includes(option.title ?? ""))
-//       .map(option => /** @type {Operation} */({
-//         hide: {
-//           deliveryOptionHandle: option.handle
-//         }
-//       }));
-  
-//     return {
-//       operations: toHide
-//     };
-//   }
-
-
-// @ts-check
-
-
-// @ts-check
-
+import postcodes from './local_postcodes.json';
+import redZones from './red_zones.json';
 
 const configuration = {
-    remoteDeliveryPostcodes: ["IV", "HS", "KA27", "KA28", "KW", "PA20", "PA21", "PA22", "PA23", "PA24", "PA25", "PA26", "PA27", "PA28", "PA29", "PA30", "PA31", "PA32", "PA33", "PA34", "PA35", "PA36", "PA37", "PA38", "PA39", "PA40", "PA41", "PA42", "PA43", "PA44", "PA45", "PA46", "PA47", "PA48", "PA49", "PA60", "PA61", "PA62", "PA63", "PA64", "PA65", "PA66", "PA67", "PA68", "PA69", "PA70", "PA71", "PA72", "PA73", "PA74", "PA75", "PA76", "PA77", "PA78", "PH17", "PH18", "PH19", "PH20", "PH21", "PH22", "PH23", "PH24", "PH25", "PH26", "PH30", "PH31", "PH32", "PH33", "PH34", "PH35", "PH36", "PH37", "PH38", "PH39", "PH40", "PH41", "PH42", "PH43", "PH44", "PH49", "PH50", "PO30", "PO31", "PO32"],
-    localPostcodes: ["M", "SK", "OL", "WA", "WN", "BL"],
-    lowValueThreshold: 15000 // £150 in pence
-  };
-  
-  /**
-   * @param {RunInput} input
-   * @returns {FunctionRunResult}
-   */
-  export function hideRun(input) {
-    const zip = input.cart.deliveryGroups[0]?.deliveryAddress?.zip ?? "";
-    const cartTotal = input.cart.lines.reduce((total, line) => 
-      total + (parseFloat(line.cost.totalAmount.amount) * 100 || 0), 0);
-    
-    const allOptions = input.cart.deliveryGroups[0]?.deliveryOptions ?? [];
-  
-    // Helper function to hide all except specified options
-    const hideAllExcept = (optionsToKeep) => {
-      return allOptions
-        .filter(option => !optionsToKeep.includes(option.title))
-        .map(option => /** @type {Operation} */({
-          hide: { deliveryOptionHandle: option.handle }
-        }));
-    };
-  
-    // Condition 1: Remote Delivery
-    if (configuration.remoteDeliveryPostcodes.some(prefix => zip.startsWith(prefix))) {
-      return { operations: hideAllExcept(["Remote delivery"]) };
-    }
+  lowValueThreshold: 15000 // £150 in pence
+};
 
-    const hasOutOfStockItem = input.cart.lines.some(line => {
-        const inventoryStatus = line.attribute?.value;
-        return inventoryStatus === 'out_of_stock';
-      });
-    
+function isLocalPostcode(customerPostcode) {
+  if (!customerPostcode) return false;
   
-    // Out of stock
-    if (hasOutOfStockItem) {
-      return { operations: hideAllExcept(["Delivery in 5-14 days"]) };
+  // Convert to uppercase and remove spaces for consistent comparison
+  const formattedPostcode = customerPostcode.toUpperCase().replace(/\s/g, '');
+  
+  // Check if the postcode starts with any of our local postcodes
+  return postcodes.some(entry => 
+    formattedPostcode.startsWith(entry.Postcode)
+  );
+}
+
+function isRedZonePostcode(customerPostcode) {
+  if (!customerPostcode) return false;
+  
+  // Convert to uppercase and remove spaces for consistent comparison
+  const formattedPostcode = customerPostcode.toUpperCase().replace(/\s/g, '');
+  
+  // Check if the postcode starts with any of our red zone postcodes
+  return redZones.some(entry => 
+    formattedPostcode.startsWith(entry.Postcode)
+  );
+}
+
+export function hideRun(input) {
+  const customerPostcode = input.cart.deliveryGroups[0]?.deliveryAddress?.zip;
+  const cartTotal = input.cart.lines.reduce((total, line) => 
+    total + (parseFloat(line.cost.totalAmount.amount) * 100 || 0), 0);
+  
+  const allOptions = input.cart.deliveryGroups[0]?.deliveryOptions ?? [];
+  
+  const isLocal = isLocalPostcode(customerPostcode);
+  const isNonLocal = !isLocal;
+  const isRedZone = isRedZonePostcode(customerPostcode);
+  
+  const hasLargeAppliance = input.cart.lines.some(line => {
+    if ('product' in line.merchandise) {
+      const productType = line.merchandise.product?.productType?.toLowerCase() ?? '';
+      return productType === 'range cooker' || productType === 'american fridge freezer';
     }
-    
-    
+    return false;
+  });
+
+  const requiresSteps = input.cart.requiresStepsAttribute?.value === 'yes';
+  const hasInstallationTag = input.cart.lines.some(line => {
+    if ('product' in line.merchandise) {
+      return line.merchandise.product?.hasAnyTag ?? false;
+    }
+    return false;
+  });
+  const hasInstallationAttribute = input.cart.hasService?.value === 'true';
+  const hasInstallation = hasInstallationTag || hasInstallationAttribute;
+
+  // Helper function to hide all except specified options
+  const hideAllExcept = (optionsToKeep) => {
+    return allOptions
+      .filter(option => !optionsToKeep.includes(option.title))
+      .map(option => /** @type {Operation} */({
+        hide: { deliveryOptionHandle: option.handle }
+      }));
+  };
+
+  // Condition 1: Remote Delivery
+  if (isRedZone) {
+    return { operations: hideAllExcept(["Remote delivery"]) };
+  }
+  // Large appliance delivery check (before AIT check)
+  if (hasLargeAppliance) {
+    if (isNonLocal) {
+      return { operations: hideAllExcept(["AIT 2 man courier service"]) };
+    }
+    if (isLocal) {
+      return { operations: hideAllExcept(["Appliance World 2 man delivery"]) };
+    }
+  }
+
     // Condition 2: Cart under £150
     if (cartTotal < configuration.lowValueThreshold) {
-      return { operations: hideAllExcept(["DPD tracked 24-48hr delivery", "Collect"]) };
-    }
-
-    
-  
- // Condition 3: Local Delivery with tag check
-if (configuration.localPostcodes.some(prefix => zip.startsWith(prefix))) {
-    const cartHasTaggedItem = input.cart.lines.some(line => {
-      if ('product' in line.merchandise) {
-        return line.merchandise.product?.hasAnyTag ?? false;
-      }
-      return false;
-    });
-  
-    if (cartHasTaggedItem) {
-      return { operations: hideAllExcept(["1 man delivery - local", "2 man delivery - local"]) };
-    } else {
-      return { operations: hideAllExcept(["1 man delivery - local", "2 man delivery - local", "Collect"]) };
-    }
+      return { operations: hideAllExcept(["DPD tracked 24-48hr delivery"]) };
   }
 
-    // Condition 4: Check if installation is selected in a non-local area
-    const cartHasTaggedItem = input.cart.lines.some(line => {
-        if ('product' in line.merchandise) {
-          return line.merchandise.product?.hasAnyTag ?? false;
-        }
-        return false;
-      });
-      
-      // New condition for tagged items
-      if (cartHasTaggedItem) {
-        return { operations: hideAllExcept(["2 man delivery - choice of date"]) };
-      }
 
-    
+
+
+  //if installation and non-local show AIT only
+  const AitDelivery = hasInstallation && isNonLocal;
   
-    // Condition 4: Default case (not remote, not local, cart >= £150)
-    return { operations: hideAllExcept(["1 man delivery - choice of date", "2 man delivery - choice of date", "Collect"]) };
+  if (AitDelivery) {
+    return { operations: hideAllExcept(["AIT 2 man courier service"]) };
   }
+
+  // Add check for non-local with steps
+  if (isNonLocal && requiresSteps) {
+    return { operations: hideAllExcept(["AIT 2 man courier service"]) };
+  }
+
+
+  const hasOutOfStockItem = input.cart.lines.some(line => {
+    const inventoryStatus = line.attribute?.value;
+    return inventoryStatus === 'out_of_stock';
+  });
+
+  // Out of stock
+  if (hasOutOfStockItem) {
+    return { operations: hideAllExcept(["Available to order: We will contact you to arrange delivery"]) };
+  }
+
+   // Condition 3: They selected collection
+   const isCollection = input.cart.shippingMethodAttribute?.value === 'collection';
+  
+   if (isCollection) {
+    return { operations: hideAllExcept(["Collect from Trafford Park"]) };
+  }
+
+  // if local and up stairs
+  if (isLocal && requiresSteps) {
+    return { operations: hideAllExcept(["Appliance World 2 man delivery"]) };
+  }
+
+  // if local and no stairs 
+  if (isLocal && !requiresSteps) {
+    return { operations: hideAllExcept(["Appliance World 1 man delivery", "Appliance World 2 man delivery"]) };
+  }
+  
+  // Condition 4: Default case 
+  return { operations: hideAllExcept(["Appliance World 1 man delivery", "AIT 2 man courier service"]) };
+}
