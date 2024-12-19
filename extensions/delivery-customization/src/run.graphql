@@ -24,6 +24,10 @@ query RunInput {
       key
       value
     }
+   orderType: attribute(key: "orderType") {
+      key
+      value
+    }    
     deliveryGroups {
       deliveryAddress {
         firstName
@@ -53,6 +57,7 @@ query RunInput {
             productType
             vendor
           }
+          weight
         }
       }
     }
