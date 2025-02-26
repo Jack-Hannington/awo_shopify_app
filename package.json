@@ -16,7 +16,9 @@
     "shopify": "shopify",
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
-    "vite": "vite"
+    "vite": "vite",
+    "clean": "rm -rf .shopify/bundle || true",
+    "dev:clean": "npm run clean && npm run dev"
   },
   "type": "module",
   "engines": {

@@ -23,15 +23,9 @@ query RunInput {
    hasService: attribute(key: "hasService") {
       key
       value
-    }
-   orderType: attribute(key: "orderType") {
-      key
-      value
-    }    
+    } 
     deliveryGroups {
       deliveryAddress {
-        firstName
-        provinceCode
         zip
       }
       deliveryOptions {
@@ -53,11 +47,11 @@ query RunInput {
       merchandise {
         ... on ProductVariant {
           product {
-            hasAnyTag(tags: ["Installation"])
+            hasSmallItem: hasAnyTag(tags: ["Small-item"])
+            hasInstallation: hasAnyTag(tags: ["Installation"])
+            hasApplianceRemoval: hasAnyTag(tags: ["Appliance removal"])
             productType
-            vendor
           }
-          weight
         }
       }
     }

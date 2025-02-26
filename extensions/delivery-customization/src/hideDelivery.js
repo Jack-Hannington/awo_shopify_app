@@ -1,5 +1,6 @@
 // @ts-check
-
+// https://shopify.dev/docs/api/functions/reference/delivery-customization/graphql/common-objects/attribute
+// shopify app logs --source extensions.hide-delivery
 /**
 * @typedef {import("../generated/api").RunInput} RunInput
 * @typedef {import("../generated/api").FunctionRunResult} FunctionRunResult
@@ -50,14 +51,31 @@ function isRedZonePostcode(customerPostcode) {
   );
 }
 
-function isEligibleForDPD(cartLines) {
-  return cartLines.every(line => {
-    const itemPrice = parseFloat(line.cost.totalAmount.amount) * 100;
-    
-    // If no weight, check price
-    return itemPrice < configuration.lowValueThreshold;
+// Rename function and add check for appliance removal tag
+function isEligibleForParcelforce(cartLines) {
+  // First check if any line has the appliance removal tag
+  const hasApplianceRemoval = cartLines.some(line => {
+    if ('product' in line.merchandise) {
+      return line.merchandise.product?.hasApplianceRemoval === true;
+    }
+    return false;
+  });
+
+  // If there's an appliance removal service, not eligible for Parcelforce
+  if (hasApplianceRemoval) {
+    return false;
+  }
+
+  // Otherwise, check for small item without installation
+  return cartLines.some(line => {
+    if ('product' in line.merchandise) {
+      return line.merchandise.product?.hasSmallItem === true && 
+             line.merchandise.product?.hasInstallation !== true;
+    }
+    return false;
   });
 }
+
 export function hideRun(input) {
   const customerPostcode = input.cart.deliveryGroups[0]?.deliveryAddress?.zip;
   const cartTotal = input.cart.lines.reduce((total, line) =>
@@ -78,14 +96,17 @@ export function hideRun(input) {
   });
 
   const requiresSteps = input.cart.requiresStepsAttribute?.value === 'yes';
-  const hasInstallationTag = input.cart.lines.some(line => {
+  
+  // Update this to use the new hasInstallation tag
+  const hasInstallation = input.cart.lines.some(line => {
     if ('product' in line.merchandise) {
-      return line.merchandise.product?.hasAnyTag ?? false;
+      return line.merchandise.product?.hasInstallation === true;
     }
     return false;
   });
+  
   const hasInstallationAttribute = input.cart.hasService?.value === 'true';
-  const hasInstallation = hasInstallationTag || hasInstallationAttribute;
+  const hasInstallationService = hasInstallation || hasInstallationAttribute;
 
   // Helper function to hide all except specified options
   const hideAllExcept = (optionsToKeep) => {
@@ -96,6 +117,10 @@ export function hideRun(input) {
       }));
   };
 
+  // Cart has small items eligible for Parcelforce
+  if (isEligibleForParcelforce(input.cart.lines)) {
+    return { operations: hideAllExcept(["Parcelforce tracked 1-3 day delivery"]) };
+  }
 
   // Remote Delivery
   if (isRedZone) {
@@ -118,61 +143,51 @@ export function hideRun(input) {
     }
   }
 
-        // Cart under £150
-        if (isEligibleForDPD(input.cart.lines)) {
-          return { operations: hideAllExcept(["DPD tracked 24-48hr delivery"]) };
-        }
+  //if installation and non-local show AIT only
+  const AitDelivery = hasInstallationService && isNonLocal;
 
-    //if installation and non-local show AIT only
-    const AitDelivery = hasInstallation && isNonLocal;
-
-    if (AitDelivery) {
-      return { operations: hideAllExcept(["AIT 2 man courier service"]) };
-    }
+  if (AitDelivery) {
+    return { operations: hideAllExcept(["AIT 2 man courier service"]) };
+  }
   
-    // Add check for non-local with steps
-    if (isNonLocal && requiresSteps) {
-      return { operations: hideAllExcept(["AIT 2 man courier service"]) };
-    }
+  // Add check for non-local with steps
+  if (isNonLocal && requiresSteps) {
+    return { operations: hideAllExcept(["AIT 2 man courier service"]) };
+  }
 
-    if (isNonLocal && !requiresSteps) {
-      return { operations: hideAllExcept(["Appliance World 1 man delivery", "AIT 2 man courier service"]) };
-    }
+  if (isNonLocal && !requiresSteps) {
+    return { operations: hideAllExcept(["Appliance World 1 man delivery", "AIT 2 man courier service"]) };
+  }
 
-      // if local and up stairs
+  // if local and up stairs
   if (isLocal && requiresSteps) {
     return { operations: hideAllExcept(["Appliance World 2 man delivery"]) };
   }
 
-
-    
-      const hasOutOfStockItem = input.cart.lines.some(line => {
-        const inventoryStatus = line.attribute?.value;
-        return inventoryStatus === 'out_of_stock';
-      });
-      
-
+  const hasOutOfStockItem = input.cart.lines.some(line => {
+    const inventoryStatus = line.attribute?.value;
+    return inventoryStatus === 'out_of_stock';
+  });
+  
   // if local and no stairs 
   if (isLocal && !requiresSteps  && !hasOutOfStockItem) {
     return { operations: hideAllExcept(["Appliance World 1 man delivery", "Appliance World 2 man delivery"]) };
   }
 
+  // Out of stock
+  if (hasOutOfStockItem) {
+    return { operations: hideAllExcept(["Available to order: We will contact you to arrange delivery"]) };
+  }
 
+  // If there are no line attributes show all options
+  const hasNoLineAttributes = input.cart.lines.some(line => {
+    return !line.attribute;
+  });
 
-      // Out of stock
-      if (hasOutOfStockItem) {
-        return { operations: hideAllExcept(["Available to order: We will contact you to arrange delivery"]) };
-      }
-
-      // If there are no line attributes show all options
-      const hasNoLineAttributes = input.cart.lines.some(line => {
-        return !line.attribute;
-      });
-  
-      // If line attributes are missing, show all options
-      if (hasNoLineAttributes && !hasInstallation) {
-        return { operations: [] };  // Shows all options by not hiding any
-      }
+  // If line attributes are missing, show all options
+  if (hasNoLineAttributes && !hasInstallationService) {
+    return { operations: [] };  // Shows all options by not hiding any
+  }
 
   // Condition 4: Default case 
   return { operations: hideAllExcept(["Appliance World 1 man delivery", "AIT 2 man courier service"]) };
