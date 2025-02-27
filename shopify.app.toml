@@ -3,7 +3,7 @@
 client_id = "24fd8948ab3a980274fc750d69c25e79"
 name = "delivery-app"
 handle = "delivery-app-50"
-application_url = "https://roy-southern-off-continued.trycloudflare.com"
+application_url = "https://names-precisely-handmade-ambassador.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_metaobjects,read_shipping,write_delivery_customizations,write_pro
 
 [auth]
 redirect_urls = [
-  "https://roy-southern-off-continued.trycloudflare.com/auth/callback",
-  "https://roy-southern-off-continued.trycloudflare.com/auth/shopify/callback",
-  "https://roy-southern-off-continued.trycloudflare.com/api/auth/callback"
+  "https://names-precisely-handmade-ambassador.trycloudflare.com/auth/callback",
+  "https://names-precisely-handmade-ambassador.trycloudflare.com/auth/shopify/callback",
+  "https://names-precisely-handmade-ambassador.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

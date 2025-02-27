@@ -66,14 +66,19 @@ function isEligibleForParcelforce(cartLines) {
     return false;
   }
 
-  // Otherwise, check for small item without installation
-  return cartLines.some(line => {
-    if ('product' in line.merchandise) {
-      return line.merchandise.product?.hasSmallItem === true && 
-             line.merchandise.product?.hasInstallation !== true;
-    }
+  // Check if all items have the Small-item tag and none have Installation
+  const allProductLines = cartLines.filter(line => 'product' in line.merchandise);
+  
+  // If no product lines, return false
+  if (allProductLines.length === 0) {
     return false;
-  });
+  }
+  
+  // Check if ALL items have the Small-item tag and NONE have Installation
+  return allProductLines.every(line => 
+    line.merchandise.product?.hasSmallItem === true && 
+    line.merchandise.product?.hasInstallation !== true
+  );
 }
 
 export function hideRun(input) {
