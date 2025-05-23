@@ -12,11 +12,7 @@ query RunInput {
       key
       value
     }
-   isLocalAttribute: attribute(key: "isLocal") {
-      key
-      value
-    }
-   isRedZone: attribute(key: "isRedZone") {
+   deliveryProvider: attribute(key: "deliveryProvider") {
       key
       value
     }
